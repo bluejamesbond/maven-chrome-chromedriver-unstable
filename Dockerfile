@@ -1,4 +1,3 @@
-FROM debian:jessie
 FROM maven:3.3.9-jdk-8
 
 ENV DEBIAN_FRONTEND noninteractive
@@ -24,10 +23,6 @@ RUN apt-get -yqq update && \
     rm -rf /var/lib/apt/lists/*
 
 
-# Install Supervisor
-RUN curl -sS -o - https://bootstrap.pypa.io/ez_setup.py | python && \
-    easy_install -q supervisor
-
 # Install Chrome WebDriver
 RUN CHROMEDRIVER_VERSION=`curl -sS chromedriver.storage.googleapis.com/LATEST_RELEASE` && \
     mkdir -p /opt/chromedriver-$CHROMEDRIVER_VERSION && \
@@ -43,10 +38,6 @@ RUN curl -sS -o - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-ke
     apt-get -yqq update && \
     apt-get -yqq install google-chrome-stable && \
     rm -rf /var/lib/apt/lists/*
-
-# Configure Supervisor
-ADD ./etc/supervisord.conf /etc/
-ADD ./etc/supervisor /etc/supervisor
 
 # Default configuration
 ENV DISPLAY :20.0
