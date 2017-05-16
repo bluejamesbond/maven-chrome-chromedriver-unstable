@@ -56,7 +56,3 @@ ENV CHROMEDRIVER_WHITELISTED_IPS "127.0.0.1"
 ENV CHROMEDRIVER_URL_BASE ''
 
 EXPOSE 4444
-
-VOLUME [ "/var/log/supervisor" ]
-
-CMD ["/usr/local/bin/supervisord", "-c", "/etc/supervisord.conf"]
