@@ -10,7 +10,6 @@ RUN echo "US/Eastern" > /etc/timezone && \
 # Create a default user
 RUN useradd automation --shell /bin/bash --create-home
 
-
 # Update the repositories
 # Install utilities
 # Install XVFB and TinyWM
@@ -28,26 +27,21 @@ RUN apt-get -yqq update && \
 RUN curl -sS -o - https://bootstrap.pypa.io/ez_setup.py | python && \
     easy_install -q supervisor
 
-# Google Chrome
+# Install Chrome WebDriver
+RUN CHROMEDRIVER_VERSION=`curl -sS chromedriver.storage.googleapis.com/LATEST_RELEASE` && \
+    mkdir -p /opt/chromedriver-$CHROMEDRIVER_VERSION && \
+    curl -sS -o /tmp/chromedriver_linux64.zip http://chromedriver.storage.googleapis.com/$CHROMEDRIVER_VERSION/chromedriver_linux64.zip && \
+    unzip -qq /tmp/chromedriver_linux64.zip -d /opt/chromedriver-$CHROMEDRIVER_VERSION && \
+    rm /tmp/chromedriver_linux64.zip && \
+    chmod +x /opt/chromedriver-$CHROMEDRIVER_VERSION/chromedriver && \
+    ln -fs /opt/chromedriver-$CHROMEDRIVER_VERSION/chromedriver /usr/local/bin/chromedriver
 
-RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - \
-	&& echo "deb http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google-chrome.list \
-	&& apt-get update -qqy \
-	&& apt-get -qqy install google-chrome-stable \
-	&& rm /etc/apt/sources.list.d/google-chrome.list \
-	&& rm -rf /var/lib/apt/lists/* /var/cache/apt/* \
-	&& sed -i 's/"$HERE\/chrome"/"$HERE\/chrome" --no-sandbox/g' /opt/google/chrome/google-chrome
-
-# ChromeDriver
-
-ARG CHROME_DRIVER_VERSION=2.25
-RUN wget --no-verbose -O /tmp/chromedriver_linux64.zip https://chromedriver.storage.googleapis.com/$CHROME_DRIVER_VERSION/chromedriver_linux64.zip \
-	&& rm -rf /opt/chromedriver \
-	&& unzip /tmp/chromedriver_linux64.zip -d /opt \
-	&& rm /tmp/chromedriver_linux64.zip \
-	&& mv /opt/chromedriver /opt/chromedriver-$CHROME_DRIVER_VERSION \
-	&& chmod 755 /opt/chromedriver-$CHROME_DRIVER_VERSION \
-	&& ln -fs /opt/chromedriver-$CHROME_DRIVER_VERSION /usr/bin/chromedriver
+# Install Google Chrome
+RUN curl -sS -o - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - && \
+    echo "deb http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google-chrome.list && \
+    apt-get -yqq update && \
+    apt-get -yqq install google-chrome-stable && \
+    rm -rf /var/lib/apt/lists/*
 
 # Configure Supervisor
 ADD ./etc/supervisord.conf /etc/
