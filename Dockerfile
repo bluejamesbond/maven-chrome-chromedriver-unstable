@@ -39,25 +39,7 @@ RUN curl -sS -o - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-ke
     apt-get -yqq install google-chrome-stable && \
     rm -rf /var/lib/apt/lists/*
 
-RUN set -x \
-    && apt-get update \
-    && apt-get install -y \
-        pkg-mozilla-archive-keyring
-
-RUN echo 'deb http://mozilla.debian.net/ jessie-backports firefox-esr' >> /etc/apt/sources.list.d/jessie-backports.list
-
-RUN set -x \
-    && apt-get update \
-    && apt-get install -y \
-        xvfb \
-    && apt-get install -y -t \
-        jessie-backports \
-        firefox-esr
-
-ADD scripts/xvfb-firefox /usr/bin/xvfb-firefox
-RUN ln -sf /usr/bin/xvfb-firefox /usr/bin/firefox
-
-ENV FIREFOX_BIN /usr/bin/firefox
+RUN apt-get update && apt-get install -y firefox
 
 RUN curl -L https://github.com/mozilla/geckodriver/releases/download/v0.14.0/geckodriver-v0.14.0-linux64.tar.gz | tar xz -C /usr/local/bin
 
