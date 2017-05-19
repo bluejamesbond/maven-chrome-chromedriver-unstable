@@ -39,11 +39,8 @@ RUN curl -sS -o - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-ke
     apt-get -yqq install google-chrome-stable && \
     rm -rf /var/lib/apt/lists/*
 
-RUN apt-get -yqq update && \
-    rm -rf /var/lib/apt/lists/*
-
 # Install Firefox
-RUN wget -q -O - http://mozilla.debian.net/archive.asc | apt-key add - && \
+RUN curl http://mozilla.debian.net/archive.asc | apt-key add - && \
     echo "deb http://mozilla.debian.net/ jessie-backports firefox-release" >> /etc/apt/sources.list.d/debian-mozilla.list && \
     apt-get -yqq update && \
     apt-get -yqq install jessie-backports firefox && \
