@@ -1,5 +1,4 @@
 FROM maven:3.3.9-jdk-8
-FROM ubuntu:14.04
 
 ENV DEBIAN_FRONTEND noninteractive
 ENV DEBCONF_NONINTERACTIVE_SEEN true
@@ -22,10 +21,7 @@ RUN apt-get -yqq update && \
     apt-get -yqq install fonts-ipafont-gothic xfonts-100dpi xfonts-75dpi xfonts-scalable xfonts-cyrillic && \
     apt-get -yqq install python && \
     rm -rf /var/lib/apt/lists/*
-    
-RUN apt-get update && \
-    apt-get install -y firefox ; \
-    apt-get clean
+
 
 # Install Chrome WebDriver
 RUN CHROMEDRIVER_VERSION=`curl -sS chromedriver.storage.googleapis.com/LATEST_RELEASE` && \
@@ -43,7 +39,7 @@ RUN curl -sS -o - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-ke
     apt-get -yqq install google-chrome-stable && \
     rm -rf /var/lib/apt/lists/*
 
-RUN curl -L https://github.com/mozilla/geckodriver/releases/download/v0.14.0 geckodriver-v0.14.0-linux64.tar.gz | tar xz -C /usr/local/bin
+RUN curl -L https://github.com/mozilla/geckodriver/releases/download/v0.14.0geckodriver-v0.14.0-linux64.tar.gz | tar xz -C /usr/local/bin
 
 # Default configuration
 ENV SCREEN_GEOMETRY "1440x900x24"
