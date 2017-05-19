@@ -39,7 +39,7 @@ RUN curl -sS -o - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-ke
     apt-get -yqq install google-chrome-stable && \
     rm -rf /var/lib/apt/lists/*
 
-RUN curl -L https://github.com/mozilla/geckodriver/releases/download/v0.14.0geckodriver-v0.14.0-linux64.tar.gz | tar xz -C /usr/local/bin
+RUN curl -L https://github.com/mozilla/geckodriver/releases/download/v0.14.0/geckodriver-v0.14.0-linux64.tar.gz | tar xz -C /usr/local/bin
 
 # Default configuration
 ENV SCREEN_GEOMETRY "1440x900x24"
