@@ -16,7 +16,7 @@ RUN useradd automation --shell /bin/bash --create-home
 # Install fonts
 # Install Python
 RUN apt-get -yqq update && \
-    apt-get -yqq install curl unzip && \
+    apt-get -yqq install curl unzip firefox && \
     apt-get -yqq install xvfb tinywm && \
     apt-get -yqq install fonts-ipafont-gothic xfonts-100dpi xfonts-75dpi xfonts-scalable xfonts-cyrillic && \
     apt-get -yqq install python && \
@@ -38,8 +38,6 @@ RUN curl -sS -o - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-ke
     apt-get -yqq update && \
     apt-get -yqq install google-chrome-stable && \
     rm -rf /var/lib/apt/lists/*
-
-RUN apt-get update && apt-get install -y firefox
 
 RUN curl -L https://github.com/mozilla/geckodriver/releases/download/v0.14.0/geckodriver-v0.14.0-linux64.tar.gz | tar xz -C /usr/local/bin
 
