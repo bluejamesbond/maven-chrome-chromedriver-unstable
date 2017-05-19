@@ -1,3 +1,6 @@
+# Based on https://github.com/elgalu/docker-selenium/blob/master/Dockerfile
+# Refer there for tips on VNC connection into test environment
+
 #== Ubuntu xenial is 16.04, i.e. FROM ubuntu:16.04
 # Find latest images at https://hub.docker.com/r/library/ubuntu/
 # Layer size: big: 127.2 MB
@@ -9,10 +12,6 @@ ENV UBUNTU_FLAVOR="xenial" \
 RUN  echo "deb http://archive.ubuntu.com/ubuntu ${UBUNTU_FLAVOR} main universe\n" > /etc/apt/sources.list \
   && echo "deb http://archive.ubuntu.com/ubuntu ${UBUNTU_FLAVOR}-updates main universe\n" >> /etc/apt/sources.list \
   && echo "deb http://archive.ubuntu.com/ubuntu ${UBUNTU_FLAVOR}-security main universe\n" >> /etc/apt/sources.list
-
-MAINTAINER Team TIP <elgalu3+team-tip@gmail.com>
-# https://github.com/docker/docker/pull/25466#discussion-diff-74622923R677
-LABEL maintainer "Team TIP <elgalu3+team-tip@gmail.com>"
 
 # No interactive frontend during docker build
 ENV DEBIAN_FRONTEND=noninteractive \
@@ -98,33 +97,9 @@ RUN apt-get -qqy update \
     psmisc \
     iproute2 \
     iputils-ping \
-    maven \
     dbus-x11 \
     wget \
     curl \
-  && apt-get -qyy autoremove \
-  && rm -rf /var/lib/apt/lists/* \
-  && apt-get -qyy clean
-
-#==============================
-# Locale and encoding settings
-#==============================
-# TODO: Allow to change instance language OS and Browser level
-#  see if this helps: https://github.com/rogaha/docker-desktop/blob/68d7ca9df47b98f3ba58184c951e49098024dc24/Dockerfile#L57
-ENV LANG_WHICH en
-ENV LANG_WHERE US
-ENV ENCODING UTF-8
-ENV LANGUAGE ${LANG_WHICH}_${LANG_WHERE}.${ENCODING}
-ENV LANG ${LANGUAGE}
-# Layer size: small: ~9 MB
-# Layer size: small: ~9 MB MB (with --no-install-recommends)
-RUN apt-get -qqy update \
-  && apt-get -qqy --no-install-recommends install \
-    language-pack-en \
-    tzdata \
-    locales \
-  && locale-gen ${LANGUAGE} \
-  && dpkg-reconfigure --frontend noninteractive locales \
   && apt-get -qyy autoremove \
   && rm -rf /var/lib/apt/lists/* \
   && apt-get -qyy clean
@@ -135,7 +110,7 @@ RUN apt-get -qqy update \
 # Full list at https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
 #  e.g. "US/Pacific" for Los Angeles, California, USA
 # e.g. ENV TZ "US/Pacific"
-ENV TZ="Europe/Berlin"
+ENV TZ="US/Pacific"
 # Apply TimeZone
 # Layer size: tiny: 1.339 MB
 RUN echo "Setting time zone to '${TZ}'" \
@@ -219,113 +194,16 @@ RUN apt-get -qqy update \
   && rm -rf /var/lib/apt/lists/* \
   && apt-get -qyy clean
 
-#===================================================
-# Run the following commands as non-privileged user
-#===================================================
-USER seluser
-WORKDIR /home/seluser
-
-#========================
-# Selenium 2 (deprecated)
-#========================
-# Layer size: medium: 21.23 MB
-ENV SEL_MAJOR_VER="2.53" \
-    SEL_PATCH_LEVEL_VER="1"
-ENV SEL_VER="${SEL_MAJOR_VER}.${SEL_PATCH_LEVEL_VER}"
-RUN  export SELBASE="https://selenium-release.storage.googleapis.com" \
-  && export SELPATH="${SEL_MAJOR_VER}/selenium-server-standalone-${SEL_VER}.jar" \
-  && wget -nv ${SELBASE}/${SELPATH} \
-  && ln -s "selenium-server-standalone-${SEL_VER}.jar" \
-           "selenium-server-standalone-2.jar" \
-  && ln -s "selenium-server-standalone-${SEL_VER}.jar" \
-           "selenium-server-standalone.jar"
-
-#============
-# Selenium 3
-#============
-# Layer size: medium ~22 MB
-ENV SEL_DIRECTORY="3.3" \
-    SEL_VER="3.3.1"
-RUN  export SELBASE="https://selenium-release.storage.googleapis.com" \
-  && export SELPATH="${SEL_DIRECTORY}/selenium-server-standalone-${SEL_VER}.jar" \
-  && wget -nv ${SELBASE}/${SELPATH} \
-  && ln -s "selenium-server-standalone-${SEL_VER}.jar" \
-           "selenium-server-standalone-3.jar"
-
-LABEL selenium_version "3.3.1"
+RUN apt-get -qqy update \
+  && apt-get -qqy install \
+    maven \
+  && rm -rf /var/lib/apt/lists/* \
+  && apt-get -qyy clean
 
 #=============================
 # sudo by default from now on
 #=============================
 USER root
-
-#=========================================================
-# Python2 for Supervisor, selenium tests, and other stuff
-#=========================================================
-# Layer size: big.: 79.39 MB (with --no-install-recommends)
-# Layer size: huge: 296 MB
-# RUN apt-get -qqy update \
-#   && apt-get -qqy --no-install-recommends install \
-#     python2.7 \
-#     python-pip \
-#     python-openssl \
-#     libssl-dev \
-#     libffi-dev \
-#   && pip install --upgrade pip \
-#   && pip install --upgrade setuptools \
-#   && rm -rf /var/lib/apt/lists/* \
-#   && apt-get -qyy clean
-
-#=========================================================
-# Python3 for Supervisor, selenium tests, and other stuff
-#=========================================================
-# Note Python2 comes already installed with Oracle Java
-#  so better stick to it to avoid occupying more disk space
-# Note Python3 fails installing mozInstall==1.12 with
-#  NameError: name 'file' is not defined
-# After install, make some useful symlinks that are expected to exist
-# Layer size: big.: 138.9 MB (with --no-install-recommends)
-# Layer size: huge: 309.9 MB
-RUN apt-get -qqy update \
-  && apt-get -qqy --no-install-recommends install \
-    python3 \
-    python3-pip \
-    python3-dev \
-    python3-openssl \
-    libssl-dev libffi-dev \
-  && pip3 install --upgrade pip \
-  && pip3 install --upgrade setuptools \
-  && rm -rf /var/lib/apt/lists/* \
-  && apt-get -qyy clean
-RUN cd /usr/local/bin \
-  && { [ -e easy_install ] || ln -s easy_install-* easy_install; } \
-  && ln -s idle3 idle \
-  && ln -s pydoc3 pydoc \
-  && ln -s python3 python \
-  && ln -s python3-config python-config \
-  && ln -s /usr/bin/python3 /usr/bin/python \
-  && python --version \
-  && pip --version
-
-#====================
-# Supervisor install
-#====================
-# TODO: Upgrade to supervisor stable 4.0 as soon as is released
-# Check every now and then if version 4 is finally the stable one
-#  https://pypi.python.org/pypi/supervisor
-#  https://github.com/Supervisor/supervisor
-# RUN apt-get -qqy update \
-#   && apt-get -qqy install \
-#     supervisor \
-# 2017-03-07 commit: 23925d017f8ecc, supervisor/version.txt: 4.0.0.dev0
-# 2017-01-05 commit: 8be5bc15e83f0f, supervisor/version.txt: 4.0.0.dev0
-# 2016-11-05 commit: cbebb93f58f4a9, supervisor/version.txt: 4.0.0.dev0
-ENV RUN_DIR="/var/run/sele"
-RUN SHA="23925d017f8eccafb1be57c509a07df75490c83d" \
-  && pip install --upgrade \
-      "https://github.com/Supervisor/supervisor/zipball/${SHA}" \
-  && rm -rf /var/lib/apt/lists/* \
-  && apt-get -qyy clean
 
 #================
 # Font libraries
@@ -359,31 +237,6 @@ RUN apt-get -qqy update \
   && rm -rf /var/lib/apt/lists/* \
   && apt-get -qyy clean
 
-#=========
-# Openbox
-# A lightweight window manager using freedesktop standards
-#=========
-# Let's disable this as is only filling disk space
-# Layer size: huge: 153.4 MB (with --no-install-recommends)
-# Layer size: huge: 224.4 MB
-# RUN apt-get -qqy update \
-#   && apt-get -qqy --no-install-recommends install \
-#     openbox obconf menu \
-#   && rm -rf /var/lib/apt/lists/* \
-#   && apt-get -qyy clean
-
-#=========
-# fluxbox
-# A fast, lightweight and responsive window manager
-#=========
-# Layer size: small: 9.659 MB
-# Layer size: small: 6.592 MB (with --no-install-recommends)
-RUN apt-get -qqy update \
-  && apt-get -qqy install \
-    fluxbox \
-  && rm -rf /var/lib/apt/lists/* \
-  && apt-get -qyy clean
-
 #============================
 # Xvfb X virtual framebuffer
 #============================
@@ -399,47 +252,8 @@ RUN apt-get -qqy update \
 RUN apt-get -qqy update \
   && apt-get -qqy --no-install-recommends install \
     xvfb \
-    xorg \
   && rm -rf /var/lib/apt/lists/* \
   && apt-get -qyy clean
-
-#============
-# VNC Server
-#============
-# Layer size: medium: 12.67 MB
-# Layer size: medium: 10.08 MB (with --no-install-recommends)
-RUN apt-get -qqy update \
-  && apt-get -qqy install \
-    x11vnc \
-  && rm -rf /var/lib/apt/lists/* \
-  && apt-get -qyy clean
-
-#===================================================
-# Run the following commands as non-privileged user
-#===================================================
-USER seluser
-
-########################################
-# noVNC to expose VNC via an html page #
-########################################
-# Download elgalu/noVNC dated 2016-11-18 commit 9223e8f2d1c207fb74cb4b8cc243e59d84f9e2f6
-# Download kanaka/noVNC dated 2016-11-10 commit 80b7dde665cac937aa0929d2b75aa482fc0e10ad
-# Download kanaka/noVNC dated 2016-02-24 commit b403cb92fb8de82d04f305b4f14fa978003890d7
-# Download kanaka/websockify dated 2016-10-10 commit cb1508fa495bea4b333173705772c1997559ae4b
-# Download kanaka/websockify dated 2015-06-02 commit 558a6439f14b0d85a31145541745e25c255d576b
-# Layer size: small: 2.919 MB
-ENV NOVNC_SHA="9223e8f2d1c207fb74cb4b8cc243e59d84f9e2f6" \
-    WEBSOCKIFY_SHA="cb1508fa495bea4b333173705772c1997559ae4b"
-RUN  wget -nv -O noVNC.zip \
-       "https://github.com/elgalu/noVNC/archive/${NOVNC_SHA}.zip" \
-  && unzip -x noVNC.zip \
-  && mv noVNC-${NOVNC_SHA} noVNC \
-  && rm noVNC.zip \
-  && wget -nv -O websockify.zip \
-      "https://github.com/kanaka/websockify/archive/${WEBSOCKIFY_SHA}.zip" \
-  && unzip -x websockify.zip \
-  && rm websockify.zip \
-  && mv websockify-${WEBSOCKIFY_SHA} ./noVNC/utils/websockify
 
 #=============================
 # sudo by default from now on
@@ -507,16 +321,6 @@ RUN apt-get -qqy update \
   && rm -rf /var/lib/apt/lists/* \
   && apt-get -qyy clean
 
-# ------------------------#
-# Sauce Connect Tunneling #
-# ------------------------#
-# Please use https://github.com/zalando/zalenium
-
-# -----------------------#
-# BrowserStack Tunneling #
-# -----------------------#
-# Please use https://github.com/zalando/zalenium
-
 #-----------------#
 # Mozilla Firefox #
 #-----------------#
@@ -572,22 +376,6 @@ RUN  wget -nv "${FF_URL}" -O "firefox.tar.bz2" \
   && mv firefox firefox-for-sel-3 \
   && sudo ln -fs /home/seluser/firefox-for-sel-3/firefox /usr/bin/firefox
 
-#--- Stable for Selenium 2
-# Layer size: big: 107 MB
-ENV FF_VER="47.0.1"
-ENV FF_COMP="firefox-${FF_VER}.tar.bz2"
-ENV FF_URL="${FF_BASE_URL}/${FF_INNER_PATH}/${FF_VER}/${FF_PLATFORM}/${FF_LANG}/${FF_COMP}"
-RUN  wget -nv "${FF_URL}" -O "firefox.tar.bz2" \
-  && bzip2 -d "firefox.tar.bz2" \
-  && tar xf "firefox.tar" \
-  && rm "firefox.tar" \
-  && mv firefox firefox-for-sel-2 \
-  && sudo ln -fs /home/seluser/firefox-for-sel-2/firefox /usr/bin/firefox
-
-LABEL selenium2_firefox_version "47.0.1"
-LABEL selenium3_firefox_version "52.0.2"
-LABEL selenium_firefox_version "52.0.2"
-
 #=============================
 # sudo by default from now on
 #=============================
@@ -616,10 +404,6 @@ ENV CHROME_VERSION_TRIGGER="58.0.3029.110" \
     CHROME_BASE_DEB_PATH="/home/seluser/chrome-deb/google-chrome" \
     GREP_ONLY_NUMS_VER="[0-9.]{2,20}"
 
-LABEL selenium2_chrome_version "58.0.3029.110"
-LABEL selenium3_chrome_version "58.0.3029.110"
-LABEL selenium_chrome_version "58.0.3029.110"
-
 # Layer size: huge: 196.3 MB
 RUN apt-get -qqy update \
   && mkdir -p chrome-deb \
@@ -636,7 +420,6 @@ RUN apt-get -qqy update \
   && echo "${CH_STABLE_VER}"
 # We have a wrapper for /opt/google/chrome/google-chrome
 RUN mv /opt/google/chrome/google-chrome /opt/google/chrome/google-chrome-base
-COPY selenium-node-chrome/opt /opt
 COPY lib/* /usr/lib/
 
 #===================================================
@@ -664,17 +447,6 @@ RUN  wget -nv -O chromedriver_linux${CPU_ARCH}.zip ${CHROME_DRIVER_URL} \
   && ln -s chromedriver-${CHROME_DRIVER_VERSION} \
            chromedriver \
   && sudo ln -s /home/seluser/chromedriver /usr/bin
-
-#=================
-# Supervisor conf
-#=================
-COPY supervisor/etc/supervisor/supervisord.conf /etc/supervisor/
-COPY **/etc/supervisor/conf.d/* /etc/supervisor/conf.d/
-
-#===================
-# DNS & hosts stuff
-#===================
-COPY ./dns/etc/hosts /tmp/hosts
 
 #======
 # Envs
@@ -940,56 +712,3 @@ ENV FIREFOX_VERSION="${FF_VER}" \
   GA_API_VERSION="1" \
   DEBIAN_FRONTEND="" \
   DEBCONF_NONINTERACTIVE_SEEN=""
-
-#================================
-# Expose Container's Directories
-#================================
-# VOLUME ${LOGS_DIR}
-
-HEALTHCHECK --interval=1s --timeout=35s --retries=1 \
-  CMD wait_all_done 30s
-
-#================
-# Binary scripts
-#================
-COPY bin/* ${BIN_UTILS}/
-COPY **/bin/* ${BIN_UTILS}/
-COPY host-scripts/* /host-scripts/
-COPY test/* /test/
-COPY test/run_test.sh /usr/bin/run_test
-COPY test/selenium_test.sh /usr/bin/selenium_test
-COPY test/python_test.py /usr/bin/python_test
-COPY images ./images
-COPY LICENSE.md /home/seluser/
-COPY Analytics.md /home/seluser/
-
-#===================================
-# Fix dirs (again) and final chores
-#===================================
-# The .X11-unix stuff is useful when using Xephyr
-RUN mkdir -p /home/seluser/.vnc \
-  && sudo touch /capabilities3.json \
-  && sudo chown seluser:seluser /capabilities3.json \
-  && generate_capabilities3_json > /capabilities3.json \
-  && cp /capabilities3.json /home/seluser/capabilities3.json \
-  && cp /capabilities3.json /home/seluser/capabilities3 \
-  && cp /capabilities3.json /home/seluser/caps3.json \
-  && cp /capabilities3.json /home/seluser/caps3 \
-  && sudo cp /capabilities3.json /capabilities.json \
-  && sudo cp /capabilities3.json /home/seluser/capabilities.json \
-  && sudo cp /capabilities3.json /home/seluser/caps.json \
-  && mkdir -p ${VIDEOS_DIR} \
-  && sudo ln -s ${VIDEOS_DIR} /videos \
-  && sudo chown seluser:seluser /videos \
-  && sudo mkdir -p ${LOGS_DIR} \
-  && sudo chown -R seluser:seluser ${LOGS_DIR} \
-  && sudo mkdir -p ${RUN_DIR} \
-  && sudo chown -R seluser:seluser ${RUN_DIR} \
-  && sudo chown -R seluser:seluser /etc/supervisor \
-  && sudo chown -R seluser:seluser /test \
-  && sudo mkdir -p /tmp/.X11-unix /tmp/.ICE-unix \
-  && sudo chmod 1777 /tmp/.X11-unix /tmp/.ICE-unix \
-  && echo ""
-
-# Include current version
-COPY VERSION /home/seluser/
