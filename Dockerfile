@@ -41,9 +41,9 @@ RUN curl -sS -o - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-ke
 
 # Install Firefox
 RUN curl http://mozilla.debian.net/archive.asc | apt-key add - 
-RUN echo "deb http://mozilla.debian.net/ jessie-backports firefox-release" >> /etc/apt/sources.list.d/debian-mozilla.list
+RUN echo "deb http://mozilla.debian.net/ firefox-release" >> /etc/apt/sources.list.d/debian-mozilla.list
 RUN apt-get -yqq update
-RUN apt-get -yqq install jessie-backports firefox
+RUN apt-get -yqq install firefox
 RUN rm -rf /var/lib/apt/lists/*
 
 RUN curl -L https://github.com/mozilla/geckodriver/releases/download/v0.14.0/geckodriver-v0.14.0-linux64.tar.gz | tar xz -C /usr/local/bin
