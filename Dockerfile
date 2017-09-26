@@ -17,17 +17,7 @@ RUN \
   apt-get -y upgrade && \
   apt-get install -y build-essential libssl-dev && \
   apt-get install -y software-properties-common && \
-  apt-get install -y byobu curl htop unzip wget
-
-# Install Java 8
-RUN add-apt-repository -y ppa:webupd8team/java
-RUN apt-get update
-RUN echo oracle-java8-installer shared/accepted-oracle-license-v1-1 select true | sudo /usr/bin/debconf-set-selections
-RUN apt-get install -y oracle-java8-installer
-
-# Install Maven + NodeJS
-RUN apt-get update
-RUN apt-get install maven nodejs
+  apt-get install -y byobu curl htop unzip wget openjdk-8-jdk openjdk-8-jre maven nodejs
 
 # Browser requirement
 RUN mkdir -p /run/user
