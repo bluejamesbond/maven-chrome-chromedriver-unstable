@@ -1,3 +1,6 @@
+## local dev
+## docker build -t ubuntu ./Dockerfile
+
 FROM ubuntu:14.04
 
 ENV DEBIAN_FRONTEND noninteractive
@@ -11,13 +14,29 @@ RUN dpkg-reconfigure --frontend noninteractive tzdata
 RUN useradd automation --shell /bin/bash --create-home
 
 # Install basics
-RUN \
-  sed -i 's/# \(.*multiverse$\)/\1/g' /etc/apt/sources.list && \
-  apt-get update && \
-  apt-get -y upgrade && \
-  apt-get install -y build-essential libssl-dev && \
-  apt-get install -y software-properties-common && \
-  apt-get install -y byobu curl htop unzip wget openjdk-8-jdk openjdk-8-jre maven nodejs
+RUN apt-get update
+RUN apt-get -y upgrade
+RUN apt-get install -y build-essential libssl-dev
+RUN apt-get install -y software-properties-common
+RUN apt-get install -y curl unzip wget xvfb
+
+# gdebi-core for easy *.deb installtion (used for chrome below)
+RUN apt-get install -y gdebi-core
+
+# Install Java
+RUN add-apt-repository ppa:webupd8team/java
+RUN apt-get update
+RUN apt-get install -y debconf-utils
+RUN echo "oracle-java8-installer shared/accepted-oracle-license-v1-1 select true" | debconf-set-selections
+RUN apt-get install -y oracle-java8-installer maven
+
+# Install NodeJS
+RUN curl -sL https://deb.nodesource.com/setup_8.x | sudo -E bash -
+RUN sudo apt-get install -y nodejs
+
+# Install Octane
+RUN npm install benchmark-octane -g
+RUN benchmark-octane
 
 # Browser requirement
 RUN mkdir -p /run/user
@@ -33,9 +52,36 @@ RUN CHROMEDRIVER_VERSION=`curl -sS chromedriver.storage.googleapis.com/LATEST_RE
     ln -fs /opt/chromedriver-$CHROMEDRIVER_VERSION/chromedriver /usr/local/bin/chromedriver
 
 # Install Google Chrome
-RUN apt-get install libxss1 libappindicator1 libindicator7
 RUN wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
-RUN dpkg -i google-chrome*.deb
+RUN gdebi ./google-chrome-stable_current_amd64.deb
+
+# Install Firefox
+RUN apt-get install -y firefox
+
+# Install GeckoDriver
+RUN curl -L https://github.com/mozilla/geckodriver/releases/download/v0.16.1/geckodriver-v0.16.1-linux64.tar.gz | tar xz -C /usr/local/bin
+
+# Install Opera
+RUN echo "deb http://deb.opera.com/opera/ stable non-free" >> /etc/apt/sources.list.d/opera.list
+RUN wget -O - http://deb.opera.com/archive.key | apt-key add -
+RUN apt-get update
+RUN apt-get install -y opera
+
+# Install OperaDriver
+RUN curl -L https://github.com/operasoftware/operachromiumdriver/releases/download/v.2.29/operadriver_linux64.zip > operadriver.zip
+RUN unzip -p operadriver.zip */operadriver > /usr/local/bin/operadriver
+RUN chmod +x /usr/local/bin/operadriver
+RUN rm operadriver.zip
+
+# RUN firefox --version
+RUN firefox --version
+RUN geckodriver --version
+RUN google-chrome --version
+RUN chromedriver --version
+RUN opera --version
+RUN operadriver --version
+RUN node --version
+RUN npm --version
 
 ENV DBUS_SESSION_BUS_ADDRESS "/dev/null"
 ENV MAVEN_OPTS "-Xmx10240M"
