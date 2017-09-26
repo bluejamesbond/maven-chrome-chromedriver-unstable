@@ -17,7 +17,7 @@ RUN \
   apt-get -y upgrade && \
   apt-get install -y build-essential libssl-dev && \
   apt-get install -y software-properties-common && \
-  apt-get install -y byobu curl htop unzip wget nodejs
+  apt-get install -y byobu curl htop unzip wget
 
 # Install Java 8
 RUN add-apt-repository -y ppa:webupd8team/java
@@ -25,11 +25,9 @@ RUN apt-get update
 RUN echo oracle-java8-installer shared/accepted-oracle-license-v1-1 select true | sudo /usr/bin/debconf-set-selections
 RUN apt-get install -y oracle-java8-installer
 
-# Install Maven
-ENV MAVEN_VERSION 3.2.2
-ENV M2_HOME /opt/maven
-RUN wget http://mirrors.hostingromania.ro/apache.org/maven/maven-3/$MAVEN_VERSION/binaries/apache-maven-$MAVEN_VERSION-bin.tar.gz -O - | tar -xz && mv apache-maven-$MAVEN_VERSION $M2_HOME
-RUN ln -s $M2_HOME/bin/mvn /usr/bin/mvn
+# Install Maven + NodeJS
+RUN apt-get update
+RUN apt-get install maven nodejs
 
 # Browser requirement
 RUN mkdir -p /run/user
