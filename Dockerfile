@@ -76,7 +76,7 @@ RUN rm operadriver.zip
 # RUN firefox --version
 RUN firefox --version
 RUN geckodriver --version
-RUN google-chrome --version
+RUN google-chrome-stable --version
 RUN chromedriver --version
 RUN opera --version
 RUN operadriver --version
