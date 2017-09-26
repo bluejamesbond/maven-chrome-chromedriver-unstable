@@ -17,7 +17,7 @@ RUN \
   apt-get -y upgrade && \
   apt-get install -y build-essential libssl-dev && \
   apt-get install -y software-properties-common && \
-  apt-get install -y byobu curl htop unzip wget
+  apt-get install -y byobu curl htop unzip wget nodejs
 
 # Install Java 8
 RUN add-apt-repository -y ppa:webupd8team/java
@@ -30,9 +30,6 @@ ENV MAVEN_VERSION 3.2.2
 ENV M2_HOME /opt/maven
 RUN wget http://mirrors.hostingromania.ro/apache.org/maven/maven-3/$MAVEN_VERSION/binaries/apache-maven-$MAVEN_VERSION-bin.tar.gz -O - | tar -xz && mv apache-maven-$MAVEN_VERSION $M2_HOME
 RUN ln -s $M2_HOME/bin/mvn /usr/bin/mvn
-
-RUN curl --silent --location https://rpm.nodesource.com/setup_8.x | bash -
-RUN apt-get install -y nodejs
 
 # Browser requirement
 RUN mkdir -p /run/user
