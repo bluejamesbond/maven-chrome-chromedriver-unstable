@@ -1,5 +1,5 @@
 ## local dev
-## docker build -t ubuntu ./Dockerfile
+## docker build -t ubuntu ./Dockerfile 
 
 FROM ubuntu:14.04
 
